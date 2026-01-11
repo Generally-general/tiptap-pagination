@@ -1,54 +1,157 @@
 @import "tailwindcss";
 
+* {
+  box-sizing: border-box;
+}
+
 :root {
-  /* US Letter Dimensions */
-  --page-width: 816px;  /* 8.5in at 96dpi */
-  --page-height: 1056px; /* 11in at 96dpi */
-  
-  /* The visual space between pages */
-  --page-gap: 24px; /* approx 0.25in */
-  
-  /* Margins inside the paper */
-  --page-margin: 96px; /* 1in */
+  --page-width: 816px;
+  --page-height: 1056px;
+  --page-gap: 32px;
+  --page-margin: 96px;
 }
 
 .editor-viewport {
   background-color: #f3f4f6;
   min-height: 100vh;
   padding: 40px 0;
-  position: relative; 
+  counter-reset: page-counter;
+  align-items: center;
+  display: flex;
+  justify-content: center;
 }
 
 .tiptap {
-  width: var(--page-width);
-  min-height: calc(var(--page-height) + var(--page-gap)); 
-  
-  margin: 0 auto;
-  padding: var(--page-margin);
   outline: none;
-
-  background-image: linear-gradient(
-    to bottom,
-    white 0px,
-    white var(--page-height),
-    transparent var(--page-height),
-    transparent calc(var(--page-height) + var(--page-gap))
-  );
-  
-  background-size: 100% calc(var(--page-height) + var(--page-gap));
-  background-repeat: repeat-y;
-  
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.15));
-  
-  line-height: 1.5;
-  font-family: "Times New Roman", Times, serif;
-  color: black;
 }
 
+.page-node {
+  font-family: Arial, Helvetica, sans-serif;
+  background: white;
+  width: var(--page-width) !important;
+  height: var(--page-height) !important;
+  max-height: var(--page-height) !important;
+  min-height: var(--page-height) !important;
+  padding: var(--page-margin);
+  margin-bottom: var(--page-gap);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  position: relative;
+  overflow: clip;
+  display: block;
+}
+
+.page-node::after {
+  counter-increment: page-counter;
+  content: "Page " counter(page-counter);
+  position: absolute;
+  top: calc(1056px - 60px);
+  right: 96px;
+  font-size: 12px;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+.page-node p {
+  margin-bottom: 16px;
+  margin-top: 0;
+}
+.page-node h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+.page-node p,
+.page-node h1 {
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.ProseMirror {
+  height: 100% !important;
+  padding: 0;
+}
+
+.page-node > *:first-child {
+  margin-bottom: 0 !important;
+}
+
+.page-node > * {
+  display: block;
+  overflow: clip; 
+}
+
+@keyframes pulse-red-border {
+  0% { 
+    outline-color: rgba(239, 68, 68, 1); 
+    box-shadow: inset 0 0 0 6px rgba(239, 68, 68, 0.4);
+  }
+  50% { 
+    outline-color: rgba(239, 68, 68, 0.2); 
+    box-shadow: inset 0 0 0 6px rgba(239, 68, 68, 0.1);
+  }
+  100% { 
+    outline-color: rgba(239, 68, 68, 1); 
+    box-shadow: inset 0 0 0 6px rgba(239, 68, 68, 0.4);
+  }
+}
+
+.page-node[data-overflow="true"] {
+  outline: 4px solid #ef4444 !important;
+  outline-offset: -4px !important;
+  background-color: #fff5f5 !important;
+  box-shadow: inset 0 0 15px rgba(239, 68, 68, 0.2) !important;
+  animation: pulse-red-border 1.5s infinite ease-in-out !important;
+}
+
+.page-node[data-overflow="true"] .ProseMirror {
+  caret-color: #ef4444;
+}
+
+
+
 @media print {
-  .tiptap {
-    margin: 0;
-    box-shadow: none;
-    width: 100%;
+  @page {
+    size: 8.5in 11in;
+    margin: 0 !important;
+  }
+
+  html, body {
+    width: 8.5in !important;
+    height: 11in !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .editor-viewport {
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    background: transparent !important;
+  }
+
+  .page-node {
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    page-break-after: always !important;
+    page-break-inside: avoid !important;
+    width: 8.5in !important;
+    height: 11in !important;
+    display: block !important;
+    position: relative !important;
+    overflow: hidden !important;
+    max-height: hidden !important;
+  }
+
+  button, .toolbar, .add-page-btn {
+    display: none !important;
+  }
+
+  .fixed {
+    display: none !important;
   }
 }
