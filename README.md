@@ -1,86 +1,169 @@
-# 📄 OpenSphere – Paginated Legal Document Editor
+# Paginated Legal Document Editor
 
-A high-fidelity, paginated rich-text editor built with **Tiptap** and **Next.js**, designed to match **US Letter print layout** for legal document drafting.
-
-This project allows users to visually see where their content will break across pages while writing—similar to Google Docs or Microsoft Word—ensuring formatting accuracy for USCIS-style legal submissions.
-
----
-
-## 🚀 Live Demo  
-**[Your Live Link Here]**
+Live Demo: https://tiptap-pagination-nine.vercel.app/  
+GitHub Repository: https://github.com/Generally-general/tiptap-pagination
 
 ---
 
-## 🧰 Tech Stack
+## Overview
 
-- Next.js  
-- Tiptap (ProseMirror)  
-- Tailwind CSS  
-- Custom Tiptap Page Extension  
-- DOM-based layout measurement  
+This project implements a **high-fidelity, paginated rich-text editor** built with **Tiptap** (ProseMirror) and **Next.js**, designed to satisfy strict formatting requirements for legal documents (specifically US Letter size with 1-inch margins). The main goal was to allow users to:
 
----
+- Visualize page breaks dynamically while drafting,
+- Ensure what they see on screen matches printed output,
+- Draft structured legal content with predictable pagination behavior.
 
-## 🧠 How Pagination Works
-
-This editor uses a **visual pagination model** rather than splitting the document into multiple documents.
-
-Each page is represented as a **`page` node** in the ProseMirror schema and rendered as a fixed-size “paper” surface that matches **US Letter (8.5″ × 11″) with 1″ margins**.
-
-### Page dimensions
-
-- Page height: **1056px**  
-- Vertical margins: **96px × 2**  
-- Safe text area: **864px**
-
-### Pagination Logic
-
-1. Tiptap renders content normally.  
-2. On every edit (`onUpdate`), the editor measures the rendered height of content inside each page using the DOM.  
-3. When content crosses the **864px safe zone**, the page is marked as **overflowing** via a ProseMirror attribute (`isOverflowing`).  
-4. A visual warning (red border + caret) is shown.  
-5. When the user clicks **Fix Overflow**, only the overflowing blocks are moved into the next page using **ProseMirror position-based slicing** (not DOM manipulation).
-
-This ensures:
-- No data loss  
-- No ProseMirror `RangeError`s  
-- Predictable and safe behavior for legal documents  
+This prototype demonstrates a practical solution to a real problem legal professionals face when preparing documents for submission, such as preparing petitions or support letters for immigration agencies like USCIS.
 
 ---
 
-## ⚖️ Design Trade-offs
+## 🛠 Tech Stack
 
-| Decision | Trade-off | Why |
-|--------|----------|-----|
-Manual overflow resolution | Users must click “Fix Overflow” | Prevents silent content movement, which is dangerous in legal drafting |
-Block-level pagination | Long paragraphs move as a unit | Avoids splitting sentences mid-way, which is risky and error-prone |
-Fixed page height | No infinite scrolling | Ensures screen matches printed output |
-DOM-based measurement | Slight performance cost | Required for accurate mixed-format height calculation |
+**Frontend**
+- Next.js (React)
+- Tiptap (ProseMirror)
+- Tailwind CSS
 
----
+**Editor & Document Model**
+- Tiptap Custom Node Extensions
+- ProseMirror Schema & Transactions
 
-## 🧩 Known Limitations
+**Styling & Layout**
+- CSS paged-media concepts
+- Fixed-dimension print-accurate layout
+- Tailwind utility classes
 
-- Paragraphs are moved as whole blocks. Very long paragraphs are not split mid-sentence unless they exceed a full page.  
-- Extremely large documents may require throttling or optimization for layout recalculation.  
-- Current implementation supports common blocks (headings, paragraphs, lists); tables and footers are not yet implemented.  
+**Deployment**
+- Vercel
 
----
+**Version Control**
+- Git & GitHub
 
-## 🔮 What I Would Improve With More Time
-
-- Smart paragraph splitting using DOM Range geometry  
-- Native header/footer support  
-- PDF export using server-side print engines  
-- Visual page ruler and margin guides  
-- Collaboration support using Tiptap’s CRDT extensions  
 
 ---
 
-## 🛠 Setup Instructions
+## Key Features
+
+- **Paginated editor UI** with fixed-size page nodes,
+- Real-time overflow detection and visual indicators,
+- Manual overflow handling via “Fix Overflow” button,
+- Print-ready output where on-screen pages correspond exactly to printed pages,
+- Support for headings, paragraphs, and multi-page documents,
+- Built with production-aligned technologies: Next.js, Tailwind CSS, and Tiptap.
+
+---
+
+## How Pagination Works
+
+The editor is built around a custom `page` node in the Tiptap schema
+
+
+### Pagination Strategy
+
+1. **Fixed Page Dimensions:**  
+   Each `.page-node` is sized to match US Letter format at 96 DPI —  
+   **816px × 1056px** with 1-inch margins, yielding a safe content height of **864px**.
+
+2. **DOM-Measured Overflow:**  
+   On each editor update (`onUpdate`), the editor:
+   - Queries all page DOM nodes,
+   - Measures the last child’s rendered bottom position,
+   - Marks the `page` node as overflowing if beyond the safe zone.
+
+3. **Overflow Handling:**  
+   - Overflowed content is not automatically split (to preserve text integrity),
+   - Users can click **Fix Overflow**, which:
+     - Slices the document starting at the overflow position,
+     - Moves overflowing blocks into the next page node,
+     - Guards against data loss and avoids corrupting document structure.
+
+4. **Print Output:**  
+   Print CSS ensures:
+   - Pages break correctly,
+   - Editor containers do not clip content,
+   - Print preview matches actual document pagination.
+
+This approach prioritizes **document stability and predictability**, crucial for legal drafting where formatting errors can have real consequences.
+
+---
+
+## Design Trade-offs
+
+| Design Choice | Trade-off | Reason |
+| ------------- | --------- | ------ |
+| Manual overflow resolution | Requires user action to fix overflows | Prevents automatic reflow that could misplace text |
+| Block-level pagination | Does not split inside paragraphs | Legal documents prefer splitting at logical boundaries |
+| Fixed layout pages | Restricts dynamic flows | Ensures what users see is exactly what prints |
+| DOM measurement | Slight performance cost on large docs | Required for accurate height and overflow detection |
+
+---
+
+## Limitations
+
+- Paragraphs are moved only as whole blocks — very long paragraphs may still cross page boundaries.
+- Tables, headers/footers, and advanced layouts are not yet supported.
+- Import/export (PDF with metadata, DOCX, etc.) is not implemented.
+- Real-time collaboration (CRDT/OT) is not included.
+
+These are deliberate scope limitations for the prototype.
+
+---
+
+## Setup Instructions
+
+### Local Development
 
 ```bash
-git clone https://github.com/Generally-general/tiptap-pagination.git
-cd opensphere-pagination
+git clone https://github.com/Generally-general/tiptap-pagination
+cd tiptap-pagination
 npm install
 npm run dev
+```
+
+### Deployment
+
+This project is deployed on **Vercel** — see the **Live Demo** link at the top of this README.
+
+---
+
+
+## What can be expected
+
+- Typing across page boundaries updates overflow status in real time.
+- Overflowing pages are highlighted visually with a red border.
+- Manual overflow fixes keep document control in the user’s hands.
+- Print preview renders each `.page-node` as a printable physical page.
+
+---
+
+
+
+## What I Would Improve with More Time
+
+- **Smart paragraph splitting**  
+  Use fine-grained DOM range measurement to split paragraphs when a single paragraph exceeds page height.
+
+- **Header & Footer**  
+  Add customizable headers & footers.
+
+- **Backend PDF Export**  
+  Generate consistent cross-platform PDFs using server-side rendering.
+
+- **Performance Optimizations**  
+  Add debouncing and virtualization for very large documents.
+
+These improvements would make the editor suitable for full production use in enterprise legal workflows.
+
+---
+
+## Developer Notes
+
+- The editor enforces **US Letter (8.5 × 11 inch)** formatting with **1-inch margins**.
+
+## Use of AI Tools
+
+AI tools were used during the development of this project to accelerate research, debugging, and implementation of complex editor and pagination logic.
+
+All generated code and architectural suggestions were reviewed, understood, and adapted manually. The final implementation reflects my own design decisions, debugging, and integration work — particularly around pagination strategy, DOM measurement, overflow handling, and print fidelity.
+
+AI was used as a productivity tool, not as a replacement for engineering judgment.
