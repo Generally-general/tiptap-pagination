@@ -39,7 +39,6 @@ const Tiptap = () => {
     const pageStart = pagePos;
     const pageEnd = pagePos + pageNode.content.size;
 
-    // Take overflow content from this page
     const overflowSlice = editor.state.doc.slice(from, pageEnd);
 
     editor
@@ -48,20 +47,17 @@ const Tiptap = () => {
       .deleteRange({ from, to: pageEnd })
       .run();
 
-    // Find next page position in the document
     const resolved = editor.state.doc.resolve(pagePos);
-    const afterPage = resolved.after(); // position after this page
+    const afterPage = resolved.after();
 
     const nextNode = editor.state.doc.nodeAt(afterPage);
 
     if (nextNode && nextNode.type.name === "page") {
-      // Insert into existing next page
       editor
         .chain()
         .insertContentAt(afterPage + 1, overflowSlice.content.toJSON())
         .run();
     } else {
-      // Create new page
       editor
         .chain()
         .insertContentAt(editor.state.doc.content.size, {
