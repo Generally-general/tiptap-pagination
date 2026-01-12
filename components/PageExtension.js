@@ -6,6 +6,7 @@ export const PageExtension = Node.create({
   content: 'block+',
   defining: true,
   selectable: false,
+  isolating: true,
 
   addAttributes() {
     return {

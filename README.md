@@ -80,7 +80,7 @@ DOM-based measurement | Slight performance cost | Required for accurate mixed-fo
 ## 🛠 Setup Instructions
 
 ```bash
-git clone https://github.com/your-username/opensphere-pagination
+git clone https://github.com/Generally-general/tiptap-pagination.git
 cd opensphere-pagination
 npm install
 npm run dev

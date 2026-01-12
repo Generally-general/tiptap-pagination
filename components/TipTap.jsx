@@ -11,63 +11,68 @@ const CustomDocument = Document.extend({
 
 const Tiptap = () => {
   const clearOverflow = () => {
-    const dom = editor.view.dom;
-    const pages = dom.querySelectorAll(".page-node");
-    const SAFE_ZONE = 864;
+  const dom = editor.view.dom;
+  const pages = dom.querySelectorAll(".page-node");
+  const SAFE_ZONE = 864;
 
-    pages.forEach((page) => {
-      const children = Array.from(page.children);
-      if (!children.length) return;
+  pages.forEach((page) => {
+    const children = Array.from(page.children);
+    if (!children.length) return;
 
-      let overflowDom = null;
+    let overflowDom = null;
 
-      for (let child of children) {
-        if (child.offsetTop + child.offsetHeight > SAFE_ZONE) {
-          overflowDom = child;
-          break;
-        }
+    for (let child of children) {
+      if (child.offsetTop + child.offsetHeight > SAFE_ZONE) {
+        overflowDom = child;
+        break;
       }
+    }
 
-      if (!overflowDom) return;
+    if (!overflowDom) return;
 
-      const from = editor.view.posAtDOM(overflowDom, 0);
-      const pagePos = editor.view.posAtDOM(page, 0);
+    const from = editor.view.posAtDOM(overflowDom, 0);
+    const pagePos = editor.view.posAtDOM(page, 0);
 
-      const pageNode = editor.state.doc.nodeAt(pagePos - 1);
-      if (!pageNode) return;
+    const pageNode = editor.state.doc.nodeAt(pagePos - 1);
+    if (!pageNode) return;
 
-      const pageStart = pagePos;
-      const pageEnd = pagePos + pageNode.content.size;
+    const pageStart = pagePos;
+    const pageEnd = pagePos + pageNode.content.size;
 
-      // Take overflow content from this page
-      const overflowSlice = editor.state.doc.slice(from, pageEnd);
+    // Take overflow content from this page
+    const overflowSlice = editor.state.doc.slice(from, pageEnd);
 
-      editor.chain().focus().deleteRange({ from, to: pageEnd }).run();
+    editor
+      .chain()
+      .focus()
+      .deleteRange({ from, to: pageEnd })
+      .run();
 
-      // Find next page position in the document
-      const resolved = editor.state.doc.resolve(pagePos);
-      const afterPage = resolved.after(); // position after this page
+    // Find next page position in the document
+    const resolved = editor.state.doc.resolve(pagePos);
+    const afterPage = resolved.after(); // position after this page
 
-      const nextNode = editor.state.doc.nodeAt(afterPage);
+    const nextNode = editor.state.doc.nodeAt(afterPage);
 
-      if (nextNode && nextNode.type.name === "page") {
-        // Insert into existing next page
-        editor
-          .chain()
-          .insertContentAt(afterPage + 1, overflowSlice.content.toJSON())
-          .run();
-      } else {
-        // Create new page
-        editor
-          .chain()
-          .insertContentAt(editor.state.doc.content.size, {
-            type: "page",
-            content: overflowSlice.content.toJSON(),
-          })
-          .run();
-      }
-    });
-  };
+    if (nextNode && nextNode.type.name === "page") {
+      // Insert into existing next page
+      editor
+        .chain()
+        .insertContentAt(afterPage + 1, overflowSlice.content.toJSON())
+        .run();
+    } else {
+      // Create new page
+      editor
+        .chain()
+        .insertContentAt(editor.state.doc.content.size, {
+          type: "page",
+          content: overflowSlice.content.toJSON(),
+        })
+        .run();
+    }
+  });
+};
+
 
   const editor = useEditor({
     extensions: [
@@ -75,7 +80,25 @@ const Tiptap = () => {
       CustomDocument,
       PageExtension,
     ],
-    content: `<div class="page-node"><h1>Legal Draft</h1><p>Start typing...</p></div>`,
+    content: {
+      type: "doc",
+      content: [
+        {
+          type: "page",
+          content: [
+            {
+              type: "heading",
+              attrs: { level: 1 },
+              content: [{ type: "text", text: "Legal Draft" }],
+            },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Start typing..." }],
+            },
+          ],
+        },
+      ],
+    },
     editorProps: {
       attributes: {
         class: "focus:outline-none",
@@ -87,7 +110,7 @@ const Tiptap = () => {
       const pages = dom.querySelectorAll(".page-node");
       const SAFE_ZONE = 890;
 
-      pages.forEach((page, index) => {
+      pages.forEach((page) => {
         const children = Array.from(page.children);
         if (children.length === 0) return;
 
@@ -97,15 +120,11 @@ const Tiptap = () => {
         const currentlyOverflowing = lastChildBottom > SAFE_ZONE;
 
         const pos = editor.view.posAtDOM(page, 0);
-
         const node = editor.state.doc.nodeAt(pos - 1);
+
         if (node && node.attrs.isOverflowing !== currentlyOverflowing) {
-          editor.commands.command(({ tr }) => {
-            tr.setNodeMarkup(pos - 1, undefined, {
-              ...node.attrs,
-              isOverflowing: currentlyOverflowing,
-            });
-            return true;
+          editor.commands.updateAttributes("page", {
+            isOverflowing: currentlyOverflowing,
           });
         }
       });
@@ -166,6 +185,7 @@ const Tiptap = () => {
           </svg>
           Fix Overflow
         </button>
+
         <button
           onClick={() => window.print()}
           className="group flex items-center gap-2 px-4 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-full transition-all hover:bg-blue-700 active:scale-95 shadow-sm cursor-pointer"
@@ -183,6 +203,7 @@ const Tiptap = () => {
           Export PDF
         </button>
       </div>
+
       <EditorContent editor={editor} />
     </div>
   );
